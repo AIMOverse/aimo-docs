@@ -86,12 +86,12 @@ export default defineConfig({
           link: "/user-guide/api-usage",
         },
         {
-          text: "X402 Payments",
-          link: "/user-guide/x402-payments",
-        },
-        {
           text: "Payments",
           link: "/user-guide/payments",
+        },
+        {
+          text: "X402 Protocol",
+          link: "/user-guide/x402-payments",
         },
         {
           text: "Streaming",

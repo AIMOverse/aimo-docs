@@ -46,7 +46,7 @@ Go to [web dashboard](https://aimo.network/account/keys) to generate a key.
 [router]
 url = "https://devnet.aimo.network"
 # prefix with `std::env::` to read from env vars
-api_key = "std::env::AIMO_API_KEY"
+api_key = "std::env::AIMO_PROVIDER_KEY"
 
 # Model metadata
 [[models]]
@@ -100,7 +100,7 @@ You can use environment variables in your configuration by prefixing values with
 
 ```bash
 # Set environment variables
-export AIMO_API_KEY="aimo-sk-prod-your-key-here"
+export AIMO_PROVIDER_KEY="aimo-sk-v2-your-provider-key-here"
 export CHUTESAI_API_KEY="your-provider-api-key"
 ```
 
@@ -108,7 +108,7 @@ Then reference them in your config:
 
 ```toml
 [router]
-api_key = "std::env::AIMO_API_KEY"
+api_key = "std::env::AIMO_PROVIDER_KEY"
 
 [models.params]
 api_key = "std::env::CHUTESAI_API_KEY"

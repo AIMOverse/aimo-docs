@@ -27,32 +27,33 @@ Keep track of:
 
 ## Quick Reference
 
-### Essential Commands
-
-```bash
-# Generate API key
-aimo keygen --tag prod --valid-for 30
-
-# Check wallet balance
-solana balance
-
-# View transaction history
-solana transaction-history [signature]
-```
-
 ### API Endpoint Summary
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
-| `/chat/completions` | POST | Chat completion with models |
-| `/keys/generate` | POST | Generate new API key |
-| `/keys/verify` | POST | Verify API key validity |
-| `/keys/revoke` | POST | Revoke API key |
+| `/v1/chat/completions` | POST | Chat completion with models |
+| `/v1/models` | GET | List available models |
 
 ### Model Format
 
-Always use the format: `provider_pubkey:model_name`
+You can specify models in two ways:
 
-Example: `8W7X1tGnWh9CXwnPD7wgke31Gdcqmex4LapJvQ2afBUq:deepseek-chat-v3`
+**Intelligent Routing (Recommended):**
+```
+openai/gpt-4o
+anthropic/claude-3-5-sonnet
+deepseek/deepseek-chat
+```
+
+**Direct Provider:**
+```
+provider_pubkey:model_name
+```
 
 Find available models at: [https://aimo.network/marketplace](https://aimo.network/marketplace)
+
+### Base URL
+
+```
+https://devnet.aimo.network/api
+```

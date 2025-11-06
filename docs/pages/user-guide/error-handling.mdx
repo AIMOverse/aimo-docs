@@ -31,36 +31,36 @@
 ```json
 {
   "error": {
-    "message": "Insufficient balance for estimated cost: 0.001 tokens",
+    "message": "Insufficient balance for estimated cost: 0.001 USDC",
     "type": "insufficient_balance"
   }
 }
 ```
 
-**Solution**: Top up your escrow account with USDC at [web dashboard](https://aimo.network/account/balance).
+**Solution**: Top up your account with USDC at [web dashboard](https://aimo.network/account/balance).
 
-### Invalid Provider
+### Invalid Model
 
 ```json
 {
   "error": {
-    "message": "Invalid service provider Pubkey: [pubkey]",
-    "type": "invalid_provider"
+    "message": "Model not found: [model_name]",
+    "type": "invalid_model"
   }
 }
 ```
 
-**Solution**: Verify the provider's Solana public key is correct. Find valid provider addresses at [https://aimo.network/demo/discover](https://aimo.network/demo/discover).
+**Solution**: Check available models using `GET /v1/models` or browse at [https://aimo.network/marketplace](https://aimo.network/marketplace).
 
-### Expired API Key
+### Invalid API Key
 
 ```json
 {
   "error": {
-    "message": "Expired",
+    "message": "Invalid API key",
     "type": "unauthorized"
   }
 }
 ```
 
-**Solution**: Generate a new API key.
+**Solution**: Verify your API key is correct (should start with `aimo-sk-v2-`) or generate a new one at the [dashboard](https://aimo.network/account/keys).

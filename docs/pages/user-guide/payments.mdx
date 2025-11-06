@@ -1,29 +1,141 @@
-# Payment and Billing
+# Payments
 
-:::warning
-The payment program currently runs only on devnet internally. When you top up your account, you transfer USDC to our system, which records the transaction and performs the onchain top-up internally on devnet. Payment settlement also runs on devnet.
+AiMo Network uses X402 protocol for seamless cryptocurrency payments on AI inference. There are two ways to access the API with different payment flows.
 
-We transfer providers' earnings to them whenever they request it through our system, based on devnet results and database records. We plan to migrate to mainnet in Q4 2025, after which centralized transactions will no longer be needed.
-:::
+## Payment Methods
 
-## Set Up Your Account Balance
+### Method 1: API Key with Managed Payments (Recommended)
 
-To use model services, you need to top up your escrow account with USDC:
+Use an API key from the dashboard - payments are handled automatically using Coinbase server wallets implementing the X402 flow.
 
-### Using the Dashboard
+**Best for:**
+- Production applications
+- High-volume usage
+- Users who want simple integration
 
-Currently, the only supported method for topping up your account is through the web dashboard:
+**How it works:**
+1. Generate an API key at [https://aimo.network/account/keys](https://aimo.network/account/keys)
+2. Fund your account with USDC at [https://aimo.network/account/balance](https://aimo.network/account/balance)
+3. Make API requests with `Authorization: Bearer aimo-sk-v2-[your-api-key]` header
+4. Payments are processed automatically via X402 protocol
 
-1. **Visit the dashboard**: Go to [web dashboard](https://aimo.network/account/balance)
-2. **Top up your account**: Add USDC to your escrow balance using the user-friendly dashboard interface
-3. **Monitor your balance**: Track your account balance and usage through the dashboard
+**Example:**
 
-## How Payments Work
+```bash
+curl -X POST "https://devnet.aimo.network/api/v1/chat/completions" \
+  -H "Authorization: Bearer aimo-sk-v2-[your-api-key]" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "openai/gpt-4o",
+    "messages": [
+      {"role": "user", "content": "Hello!"}
+    ],
+    "max_tokens": 100
+  }'
+```
 
-1. **Escrow Account**: Your tokens are held in a secure escrow account
-2. **Pre-Authorization**: Before each request, the system estimates and locks the maximum cost
-3. **Actual Settlement**: After the request completes, you're charged only for actual usage
-4. **Automatic Recovery**: If a request fails, locked tokens are automatically recovered
+### Method 2: Direct X402 Payment
+
+Call the API without an Authorization header and implement the X402 payment flow yourself.
+
+**Best for:**
+- Blockchain-native applications
+- Pay-per-use scenarios
+- Decentralized integrations
+- Testing without account setup
+
+**How it works:**
+1. Make a request without Authorization header
+2. Receive a 402 Payment Required response with payment details
+3. Submit payment on Solana or Base
+4. Retry request with payment proof in `X-Payment` header
+
+**Example:**
+
+```bash
+# Initial request (no auth header)
+curl -X POST "https://devnet.aimo.network/api/v1/chat/completions" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "openai/gpt-4o",
+    "messages": [{"role": "user", "content": "Hello!"}],
+    "max_tokens": 100
+  }'
+
+# Response: 402 Payment Required with payment options
+# After submitting payment, retry with proof:
+curl -X POST "https://devnet.aimo.network/api/v1/chat/completions" \
+  -H "Content-Type: application/json" \
+  -H "X-Payment: base:0x[transaction-hash]" \
+  -d '{...same request...}'
+```
+
+### Using X402 SDK
+
+For direct X402 payments, use the official SDK to handle the payment flow automatically:
+
+```bash
+npm install x402-fetch viem
+```
+
+```typescript
+import { createWalletClient, http } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { wrapFetchWithPayment } from "x402-fetch";
+import { base } from "viem/chains";
+
+const account = privateKeyToAccount(process.env.PRIVATE_KEY);
+const client = createWalletClient({
+  account,
+  transport: http(),
+  chain: base,
+});
+
+const fetchWithPay = wrapFetchWithPayment(fetch, client);
+
+const response = await fetchWithPay("https://devnet.aimo.network/api/v1/chat/completions", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    model: "openai/gpt-4o",
+    messages: [{ role: "user", content: "Hello!" }],
+    max_tokens: 100
+  })
+});
+
+const data = await response.json();
+console.log(data);
+```
+
+## How X402 Payments Work
+
+1. **Request**: Client makes API request
+2. **Payment Required**: Server returns 402 with payment options (Solana, Base)
+3. **Payment**: Client submits USDC payment transaction
+4. **Verification**: Server verifies payment on-chain
+5. **Response**: Server processes request and returns result
+
+## Supported Networks
+
+- **Solana Mainnet**: USDC payments
+- **Base Mainnet**: USDC payments
+
+## Funding Your Account
+
+### For API Key Users
+
+Fund your account through the web dashboard:
+
+1. Visit [https://aimo.network/account/balance](https://aimo.network/account/balance)
+2. Add USDC to your account
+3. Your balance is used automatically for API requests
+
+### For Direct X402 Users
+
+Ensure your wallet has USDC on Solana or Base:
+
+- **Solana**: USDC token address `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`
+- **Base**: USDC token address `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
 
 ## Usage Tracking
 
@@ -33,22 +145,40 @@ Payments are calculated based on:
 - **Provider Pricing**: Each provider sets their own pricing per token
 - **Model Type**: Different models may have different pricing
 
-## Managing Your Balance
-
-- **Check Balance**: Monitor your escrow balance through your wallet or node operator tools
-- **Top Up**: Add more tokens to your escrow account when needed
-- **Withdraw**: Unused tokens can be withdrawn from your escrow account
+Check your usage and spending in the [dashboard](https://aimo.network/account/balance).
 
 ## Onramp/Offramp Guide
 
-AiMo Network uses stablecoins for permissionless on-chain settlement. Users need to onramp fiat to crypto to use the network and offramp crypto to fiat to cash out.
+To use AiMo Network, you need USDC cryptocurrency. Here's how to get it:
 
-:::info
-We plan to integrate onramp/offramp providers into web applications and support stablecoin-focused blockchains in the future as usage increases. This will provide a seamless experience for users and increase network adoption.
-:::
+### Recommended: MoonPay
 
-For most users, we recommend using [MoonPay](https://moonpay.io/). MoonPay is a popular onramp/offramp provider that supports multiple cryptocurrencies and fiat currencies.
+[MoonPay](https://moonpay.io/) is a popular onramp/offramp provider supporting multiple cryptocurrencies and fiat currencies.
 
-For users in areas that face geo-restrictions, we recommend using P2P services provided by mainstream exchanges such as Binance, OKX, and other exchanges that are licensed in your country.
+### Alternative: Exchange P2P
 
-If you encounter any particular issues, do not hesitate to reach out to us by joining our [Discord server](https://discord.gg/G3zVrZDa5C) and get support, we will do our best to help you.
+For users facing geo-restrictions, use P2P services from mainstream exchanges:
+- Binance
+- OKX
+- Other licensed exchanges in your country
+
+### Need Help?
+
+Join our [Discord server](https://discord.gg/G3zVrZDa5C) for support with funding and payments.
+
+## Payment Security
+
+- **On-chain Verification**: All payments are verified on the blockchain
+- **Atomic Transactions**: Payment and service delivery are atomic
+- **No Double-Spending**: Each payment can only be used once
+- **Transparent Pricing**: All costs are shown upfront
+
+## Comparison
+
+| Feature | API Key Method | Direct X402 |
+|---------|---------------|-------------|
+| Setup Required | Account + API key | Wallet only |
+| Payment Flow | Automatic | Manual/SDK |
+| Best For | Production apps | Decentralized apps |
+| Integration | Simple | Advanced |
+| Transaction Fees | Minimal (managed) | Gas fees per request |

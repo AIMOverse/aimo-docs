@@ -2,30 +2,20 @@
 
 ## Generate Your API Key
 
-You have two options to generate your API key:
+To access the AiMo Network LLM API, you need to generate an API key through our web dashboard:
 
-### Option A: Using the CLI
+1. Visit the [AiMo Network Dashboard](https://aimo.network/account/keys)
+2. Click "Generate API Key"
+3. Copy your API key - it will start with `aimo-sk-v2-`
 
-AiMo Network uses cryptographically signed API keys linked to your Solana wallet:
-
-```bash
-# Generate an API key valid for 90 days
-aimo keygen --tag dev --valid-for 90 --scopes completion_model
-
-# This will output an API key like:
-# aimo-sk-dev-[base58-encoded-key]
+**Example API Key Format:**
+```
+aimo-sk-v2-[base58-encoded-key]
 ```
 
-**API Key Parameters:**
-
-- `--tag`: Environment tag. **IMPORTANT**: Only `dev` is allowed by the API now!
-- `--valid-for`: Validity period in days (default: 90 days)
-- `--scopes`: Permissions for the key (currently supports "completion_model")
-- `--usage-limit`: Optional usage limit (0 = unlimited)
-
-### Option B: Using the Dashboard
-
-Alternatively, you can generate API keys and manage your account through our [web dashboard](https://aimo.network/account/keys). This provides a user-friendly interface for key generation and account management.
+:::warning
+Store your API key securely. It cannot be retrieved again after generation. Never expose API keys in client-side code or public repositories.
+:::
 
 ## API Key Management
 
@@ -33,24 +23,20 @@ Alternatively, you can generate API keys and manage your account through our [we
 
 1. **Keep Keys Secure**: Store API keys securely, never expose them in client-side code
 2. **Use Environment Variables**: Store keys in environment variables or secure configuration
-3. **Rotate Keys Regularly**: Generate new keys before expiration
-4. **Monitor Usage**: Track your API key usage and costs
+3. **Rotate Keys Regularly**: Generate new keys periodically for enhanced security
+4. **Monitor Usage**: Track your API key usage and costs through the dashboard
 
 ### Key Revocation
 
-If your API key is compromised, you can revoke it:
+If your API key is compromised, you can revoke it immediately through the web dashboard:
 
-```bash
-# Sign a revocation message with your Solana wallet
-solana-keygen verify [signature] [message] --keypair ~/.config/solana/id.json
+1. Go to the [API Keys](https://aimo.network/account/keys) section
+2. Find the compromised key
+3. Click "Revoke" to disable it
+4. Generate a new key to replace it
 
-# Submit revocation through the API (contact node operator for details)
-```
+### Key Management
 
-### Key Expiration
-
-API keys have expiration dates. Before your key expires:
-
-1. Generate a new key with `aimo keygen`
-2. Update your applications with the new key
-3. The old key will stop working after expiration
+- **View all keys**: See all your active API keys in the dashboard
+- **Track usage**: Monitor request counts and spending per key
+- **Delete keys**: Remove keys you no longer need

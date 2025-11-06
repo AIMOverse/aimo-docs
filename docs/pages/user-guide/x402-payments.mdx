@@ -1,24 +1,27 @@
-# X402 Payment Endpoint
+# X402 Payment Protocol
 
-The X402 payment endpoint enables direct cryptocurrency payments for AI model inference without requiring pre-funded escrow accounts or API keys. Simply make requests and pay on-demand using blockchain transactions.
+AiMo Network uses the X402 protocol for all payment processing. X402 enables direct cryptocurrency payments for AI model inference with automatic payment verification.
 
 ## Overview
 
-This approach is ideal for:
-- **Pay-per-use scenarios** without account setup
-- **Blockchain-native applications** that prefer direct payments
-- **Decentralized integrations** requiring permissionless access
-- **Testing and experimentation** without pre-funding
+X402 payments are used in two ways on AiMo Network:
 
-The easiest way to use X402 payments is with the official X402 SDK, which handles all payment flows automatically.
+1. **Managed (with API Key)**: Automatic X402 flow using Coinbase server wallets - [See API Key Method](/user-guide/payments#method-1-api-key-with-managed-payments-recommended)
+2. **Direct (without API Key)**: Manual X402 implementation by client - [See Direct X402 Method](/user-guide/payments#method-2-direct-x402-payment)
 
-## Endpoint Details
+:::info
+For complete payment documentation, see the [Payments Guide](/user-guide/payments).
+:::
 
-**Path:** `/alpha/chat/completions`
+## Using X402 Direct Payment
+
+When calling the API without an Authorization header, you implement the X402 protocol yourself.
+
+### Endpoint Details
 
 **Base URL:** `https://devnet.aimo.network/api`
 
-**Full Endpoint:** `POST https://devnet.aimo.network/api/alpha/chat/completions`
+**Endpoint:** `POST /v1/chat/completions`
 
 **Supported Networks:**
 - **Solana Mainnet**: USDC payments
@@ -52,13 +55,13 @@ const client = createWalletClient({
 const fetchWithPay = wrapFetchWithPayment(fetch, client);
 
 // Make a request - payment is handled automatically
-const response = await fetchWithPay("https://devnet.aimo.network/api/alpha/chat/completions", {
+const response = await fetchWithPay("https://devnet.aimo.network/api/v1/chat/completions", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
   },
   body: JSON.stringify({
-    model: "Df6Uz871M62ps3K9oEQuB6ZbJcuLV2AXmrLZ8uoFDutv:deepseek-r1",
+    model: "openai/gpt-4o",
     messages: [
       { role: "user", content: "Explain quantum computing" }
     ],
@@ -82,11 +85,11 @@ The `x402-fetch` SDK automatically:
 The X402 SDK works seamlessly with streaming responses:
 
 ```typescript
-const response = await fetchWithPay("https://devnet.aimo.network/api/alpha/chat/completions", {
+const response = await fetchWithPay("https://devnet.aimo.network/api/v1/chat/completions", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
-    model: "Df6Uz871M62ps3K9oEQuB6ZbJcuLV2AXmrLZ8uoFDutv:deepseek-r1",
+    model: "anthropic/claude-3-5-sonnet",
     messages: [{ role: "user", content: "Tell me a story" }],
     stream: true,
     max_tokens: 500
@@ -127,11 +130,11 @@ const fetchWithPay = wrapFetchWithPayment(fetch, client, {
 
 ## Request Format
 
-The X402 endpoint accepts the same request format as the standard chat completions endpoint:
+The endpoint accepts standard OpenAI-compatible request format:
 
 ```json
 {
-  "model": "provider_pubkey:model_name",
+  "model": "openai/gpt-4o",
   "messages": [
     {"role": "system", "content": "You are a helpful assistant."},
     {"role": "user", "content": "Your question here"}
@@ -144,7 +147,7 @@ The X402 endpoint accepts the same request format as the standard chat completio
 ```
 
 **Supported Parameters:**
-- `model` (required): Format is `provider_pubkey:model_name`
+- `model` (required): Model name (e.g., `openai/gpt-4o`) or direct format (`provider_pubkey:model_name`)
 - `messages` (required): Array of message objects with `role` and `content`
 - `stream`: Enable streaming responses (default: false)
 - `max_tokens`: Maximum tokens to generate
@@ -154,11 +157,11 @@ The X402 endpoint accepts the same request format as the standard chat completio
 
 ## Network Selection
 
-The endpoint automatically selects the payment network based on your request or returns options for both networks. You can specify a preferred network:
+The endpoint returns payment options for both Solana and Base networks. You can choose which network to use for payment:
 
-**Via Header:**
+**Via Header (Optional):**
 ```bash
-curl -X POST "https://devnet.aimo.network/api/v1/alpha/chat/completions" \
+curl -X POST "https://devnet.aimo.network/api/v1/chat/completions" \
   -H "X-Preferred-Network: solana" \
   -H "Content-Type: application/json" \
   -d '...'
@@ -288,11 +291,11 @@ const fetchWithPay = wrapFetchWithPayment(fetch, client, {
 });
 
 try {
-  const response = await fetchWithPay("https://devnet.aimo.network/api/alpha/chat/completions", {
+  const response = await fetchWithPay("https://devnet.aimo.network/api/v1/chat/completions", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "Df6Uz871M62ps3K9oEQuB6ZbJcuLV2AXmrLZ8uoFDutv:deepseek-r1",
+      model: "deepseek/deepseek-chat",
       messages: [{ role: "user", content: "Hello!" }],
       max_tokens: 100
     })
@@ -342,7 +345,7 @@ For advanced users who need direct control, you can implement the X402 flow manu
 
 **Submit Payment Proof:**
 ```bash
-curl -X POST "https://devnet.aimo.network/api/alpha/chat/completions" \
+curl -X POST "https://devnet.aimo.network/api/v1/chat/completions" \
   -H "Content-Type: application/json" \
   -H "X-Payment: base:0x1a2b...transaction-hash...3c4d" \
   -d '{...your request...}'
@@ -350,17 +353,17 @@ curl -X POST "https://devnet.aimo.network/api/alpha/chat/completions" \
 
 For full manual implementation details, refer to the [X402 Protocol Specification](https://x402.org).
 
-## Comparison with Standard Endpoint
+## Comparison of Payment Methods
 
-| Feature | X402 Endpoint | Standard Endpoint |
-|---------|--------------|-------------------|
-| Authentication | None required | API key required |
-| Account Setup | Not needed | Requires account |
-| Payment Method | Direct blockchain tx | Pre-funded escrow |
-| Payment Timing | Pay-per-request | Pre-funded balance |
-| Transaction Fees | Gas fees per request | Minimal (escrow) |
-| SDK Support | x402-fetch | OpenAI SDK compatible |
-| Best For | One-off requests, testing, decentralized apps | High-volume usage, production |
+| Feature | API Key (Managed X402) | Direct X402 |
+|---------|----------------------|-------------|
+| Authentication | API key required | None required |
+| Account Setup | Dashboard account | Wallet only |
+| Payment Method | Automatic (Coinbase wallets) | Manual blockchain tx |
+| Payment Flow | Transparent | Explicit 402 flow |
+| Transaction Fees | Minimal (managed) | Gas fees per request |
+| SDK Support | Standard HTTP client | x402-fetch required |
+| Best For | Production apps, high volume | Decentralized apps, testing |
 
 ## Security Considerations
 

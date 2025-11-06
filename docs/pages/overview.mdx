@@ -5,73 +5,60 @@ Get up and running with AiMo Network in just a few minutes.
 ## What You'll Learn
 
 This quick start guide will help you:
-- Set up your Solana wallet
-- Generate your API key using the CLI
+- Create your account and generate an API key
+- Fund your account with USDC
 - Make your first inference request
-- Understand the decentralized payment system
+- Understand the X402 payment system
 
 ## Prerequisites
 
 - Basic understanding of AI/ML models and APIs
-- Command line environment
 - Internet connection
-- Solana CLI tools (for wallet and payment management)
+- USDC for payments (optional - you can also use X402 direct payments)
 
-## Step 1: Set Up Your Solana Wallet
+## Step 1: Visit the Web Console
 
-AiMo Network uses Solana for decentralized payments:
+Go to the [AiMo Network Dashboard](https://aimo.network/account) to access your account.
 
-1. **Install Solana CLI**: Follow [Solana's installation guide](https://docs.solana.com/cli/install-solana-cli-tools)
-2. **Generate a wallet**: 
-   ```bash
-   solana-keygen new
-   ```
-3. **Fund your wallet**: You'll need Solana tokens for the escrow account
+## Step 2: Generate Your API Key
 
-## Step 2: Install AiMo CLI
+Generate your API key through the dashboard:
 
-Install the AiMo CLI tool for key generation and account management:
-
-```bash
-cargo install aimo-cli
-```
-
-## Step 3: Generate Your API Key
-
-Generate a cryptographically signed API key linked to your Solana wallet:
-
-```bash
-# Generate an API key valid for 90 days
-aimo keygen --tag dev --valid-for 90 --scopes completion_model
-```
+1. Navigate to the [API Keys](https://aimo.network/account/keys) section
+2. Click "Generate API Key"
+3. Copy and securely store your API key
 
 Your API key will look like this:
 ```
-aimo-sk-dev-[base58-encoded-key]
+aimo-sk-v2-[base58-encoded-key]
 ```
 
-## Step 4: Set Up Your Escrow Account
-
-For paid models, you need to deposit USDC into your escrow account:
-
-1. **Go to the dashboard**: Visit [web dashboard](https://aimo.network/account/balance)
-2. **Top up your account**: Add USDC to your escrow balance using the dashboard interface
-3. **Automatic payments**: The system will handle payments automatically based on usage
-
-:::note
-The escrow system locks estimated costs before requests and settles actual usage after completion.
+:::warning
+Store your API key securely. It cannot be retrieved again after generation.
 :::
 
-## Step 5: Make Your First Request
+## Step 3: Fund Your Account
+
+Add USDC to your account for AI inference payments:
+
+1. Visit the [Balance](https://aimo.network/account/balance) section
+2. Add USDC to your account
+3. Payments will be processed automatically using the X402 protocol
+
+:::note
+Alternatively, you can use X402 direct payments without pre-funding. See the [Payments Guide](/user-guide/payments) for details.
+:::
+
+## Step 4: Make Your First Request
 
 ### Using cURL
 
 ```bash
 curl -X POST "https://devnet.aimo.network/api/v1/chat/completions" \
-  -H "Authorization: Bearer aimo-sk-dev-[your-api-key]" \
+  -H "Authorization: Bearer aimo-sk-v2-[your-api-key]" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "8W7X1tGnWh9CXwnPD7wgke31Gdcqmex4LapJvQ2afBUq:deepseek-chat-v3",
+    "model": "openai/gpt-4o",
     "messages": [
       {"role": "user", "content": "Hello! Can you help me understand AiMo Network?"}
     ],
@@ -88,12 +75,12 @@ import json
 
 url = "https://devnet.aimo.network/api/v1/chat/completions"
 headers = {
-    "Authorization": "Bearer aimo-sk-dev-[your-api-key]",
+    "Authorization": "Bearer aimo-sk-v2-[your-api-key]",
     "Content-Type": "application/json"
 }
 
 data = {
-    "model": "8W7X1tGnWh9CXwnPD7wgke31Gdcqmex4LapJvQ2afBUq:deepseek-chat-v3",
+    "model": "anthropic/claude-3-5-sonnet",
     "messages": [
         {"role": "user", "content": "Hello! Can you help me understand AiMo Network?"}
     ],
@@ -111,11 +98,11 @@ print(response.json())
 const response = await fetch('https://devnet.aimo.network/api/v1/chat/completions', {
   method: 'POST',
   headers: {
-    'Authorization': 'Bearer aimo-sk-dev-[your-api-key]',
+    'Authorization': 'Bearer aimo-sk-v2-[your-api-key]',
     'Content-Type': 'application/json'
   },
   body: JSON.stringify({
-    model: '8W7X1tGnWh9CXwnPD7wgke31Gdcqmex4LapJvQ2afBUq:deepseek-chat-v3',
+    model: 'deepseek/deepseek-chat',
     messages: [
       { role: 'user', content: 'Hello! Can you help me understand AiMo Network?' }
     ],
@@ -128,16 +115,32 @@ const data = await response.json();
 console.log(data.choices[0].message.content);
 ```
 
-## Step 6: Finding Model Providers
+## Step 5: Finding Available Models
 
-To use AiMo Network, you need to find available models and their provider addresses:
+There are several ways to discover available models:
 
-1. **Visit the discover page**: Go to [https://aimo.network/demo/discover](https://aimo.network/demo/discover) to browse available models
-2. **Copy the model slug**: Find the model you want to use and copy its complete slug in the format `address:model_name`
-3. **Use in your requests**: Paste the copied slug directly into your API requests
+### 1. List Models via API
 
-Example model slugs you might find:
-- `8W7X1tGnWh9CXwnPD7wgke31Gdcqmex4LapJvQ2afBUq:deepseek-chat-v3`
+```bash
+curl "https://devnet.aimo.network/api/v1/models" \
+  -H "Authorization: Bearer aimo-sk-v2-[your-api-key]"
+```
+
+### 2. Browse the Marketplace
+
+Visit [https://aimo.network/marketplace](https://aimo.network/marketplace) to explore available models with their capabilities and pricing.
+
+### Model Format Options
+
+**Intelligent Routing (Recommended):**
+Use simple model names for automatic routing:
+- `openai/gpt-4o`
+- `anthropic/claude-3-5-sonnet`
+- `deepseek/deepseek-chat`
+
+**Direct Provider:**
+Route to a specific provider:
+- `provider_pubkey:model_name`
 
 ## Common Use Cases
 
@@ -146,9 +149,9 @@ Example model slugs you might find:
 import requests
 
 response = requests.post("https://devnet.aimo.network/api/v1/chat/completions", 
-    headers={"Authorization": "Bearer aimo-sk-dev-[your-key]", "Content-Type": "application/json"},
+    headers={"Authorization": "Bearer aimo-sk-v2-[your-key]", "Content-Type": "application/json"},
     json={
-        "model": "provider_pubkey:gpt-4",
+        "model": "openai/gpt-4o",
         "messages": [
             {"role": "system", "content": "You are a helpful writing assistant."},
             {"role": "user", "content": "Write a product description for a smart water bottle."}
@@ -160,9 +163,9 @@ response = requests.post("https://devnet.aimo.network/api/v1/chat/completions",
 ### Code Generation
 ```python
 response = requests.post("https://devnet.aimo.network/api/v1/chat/completions",
-    headers={"Authorization": "Bearer aimo-sk-dev-[your-key]", "Content-Type": "application/json"},
+    headers={"Authorization": "Bearer aimo-sk-v2-[your-key]", "Content-Type": "application/json"},
     json={
-        "model": "provider_pubkey:code-model",
+        "model": "anthropic/claude-3-5-sonnet",
         "messages": [
             {"role": "user", "content": "Write a Python function to calculate fibonacci numbers"}
         ]
@@ -173,9 +176,9 @@ response = requests.post("https://devnet.aimo.network/api/v1/chat/completions",
 ### Streaming Responses
 ```python
 response = requests.post("https://devnet.aimo.network/api/v1/chat/completions",
-    headers={"Authorization": "Bearer aimo-sk-dev-[your-key]", "Content-Type": "application/json"},
+    headers={"Authorization": "Bearer aimo-sk-v2-[your-key]", "Content-Type": "application/json"},
     json={
-        "model": "provider_pubkey:gpt-3.5-turbo",
+        "model": "deepseek/deepseek-chat",
         "messages": [{"role": "user", "content": "Tell me about AI"}],
         "stream": True
     },
@@ -192,13 +195,14 @@ for line in response.iter_lines():
 
 ## Understanding Costs and Payments
 
-AiMo Network uses a decentralized payment system with automatic escrow:
+AiMo Network uses the X402 protocol for decentralized payments:
 
 ### How Payments Work
 
-1. **Pre-Authorization**: Before each request, estimated cost is locked in your escrow
-2. **Actual Settlement**: After completion, you're charged only for actual token usage
-3. **Automatic Recovery**: Failed requests automatically recover locked tokens
+1. **Account Funding**: Add USDC to your account via the dashboard
+2. **Automatic Processing**: When you make requests with an API key, payments are processed automatically using Coinbase server wallets
+3. **Usage-Based Billing**: You're charged only for actual token usage
+4. **Transparent Pricing**: Each provider sets their own pricing per token
 
 ### Response Format
 
@@ -219,7 +223,7 @@ Each request returns usage information for billing:
 
 - **Token Usage**: Based on input tokens (prompt) and output tokens (completion)
 - **Provider Pricing**: Each provider sets their own pricing per token
-- **Blockchain Settlement**: Payments are settled automatically on Solana
+- **Blockchain Settlement**: Payments are settled using X402 protocol on Solana or Base
 
 ## Error Handling
 
@@ -230,9 +234,9 @@ import requests
 
 try:
     response = requests.post("https://devnet.aimo.network/api/v1/chat/completions",
-        headers={"Authorization": "Bearer aimo-sk-dev-[your-key]", "Content-Type": "application/json"},
+        headers={"Authorization": "Bearer aimo-sk-v2-[your-key]", "Content-Type": "application/json"},
         json={
-            "model": "provider_pubkey:gpt-4",
+            "model": "openai/gpt-4o",
             "messages": [{"role": "user", "content": "Hello"}]
         }
     )
@@ -241,11 +245,11 @@ try:
         data = response.json()
         print(data['choices'][0]['message']['content'])
     elif response.status_code == 401:
-        print("Error: Invalid or expired API key")
+        print("Error: Invalid API key")
     elif response.status_code == 402:
-        print("Error: Insufficient balance in escrow account")
+        print("Error: Insufficient balance")
     elif response.status_code == 404:
-        print("Error: Provider or model not found")
+        print("Error: Model not found")
     else:
         print(f"Error {response.status_code}: {response.text}")
         
@@ -257,8 +261,8 @@ except Exception as e:
 
 1. **Store API keys securely** - Use environment variables, never expose in code
 2. **Handle errors gracefully** - Implement retry logic with exponential backoff
-3. **Monitor escrow balance** - Keep sufficient tokens for your usage patterns
-4. **Use correct model format** - Always use `provider_pubkey:model_name` format
+3. **Monitor account balance** - Keep sufficient USDC for your usage patterns
+4. **Use intelligent routing** - Use simple model names (e.g., `openai/gpt-4o`) for automatic provider selection
 5. **Implement streaming** - Use streaming for better user experience with longer responses
 
 ## Next Steps
@@ -278,30 +282,25 @@ Now that you've made your first request:
 ### Common Issues
 
 **Authentication Error (401)**
-- Verify your API key format: `aimo-sk-dev-[base58-encoded-key]`
-- Check that your API key hasn't expired
+- Verify your API key format: `aimo-sk-v2-[base58-encoded-key]`
 - Ensure it's included in the Authorization header
+- Generate a new key if needed via the [dashboard](https://aimo.network/account/keys)
 
 **Insufficient Balance Error (402)**
-- Your escrow account has insufficient tokens
-- Top up your escrow account with more tokens
-- Contact your node operator for payment token details
+- Your account has insufficient USDC
+- Top up your account at [https://aimo.network/account/balance](https://aimo.network/account/balance)
 
-**Provider/Model Not Found (404)**
-- Verify the provider's Solana public key is correct
-- Ensure you're using the format: `provider_pubkey:model_name`
-- Check with your node operator for available providers
-
-**Failed Dependency (424)**
-- Your escrow account isn't set up properly
-- Set up your escrow account with the required payment tokens
+**Model Not Found (404)**
+- Verify the model name is correct
+- Check available models via `GET /v1/models` or browse the [marketplace](https://aimo.network/marketplace)
+- Try using intelligent routing format (e.g., `openai/gpt-4o`)
 
 ### Getting Help
 
 - **Documentation**: Browse the user guide and provider guide
-- **Node Operator**: Contact your AiMo Network node operator for technical support
-- **Community**: Join AiMo Network community forums
-- **CLI Help**: Run `aimo --help` for command assistance
+- **Dashboard**: Manage your account at [https://aimo.network/account](https://aimo.network/account)
+- **Community**: Join our [Discord server](https://discord.gg/MkeG9Zwuaw)
+- **Support**: Contact [support@aimo.network](mailto:kelsenliu@aimo.network)
 
 ---
 

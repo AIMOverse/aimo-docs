@@ -6,14 +6,14 @@
 
 AiMo Network provides an OpenAI-compatible chat completion endpoint:
 
-**Base URL:** `https://devnet.aimo.network/api/v1/`
+**Base URL:** `https://devnet.aimo.network/api`
 
-**Endpoint:** `POST /chat/completions`
+**Endpoint:** `POST /v1/chat/completions`
 
 **Headers:**
 
 ```http
-Authorization: Bearer aimo-sk-dev-[your-api-key]
+Authorization: Bearer aimo-sk-v2-[your-api-key]
 Content-Type: application/json
 ```
 
@@ -21,7 +21,7 @@ Content-Type: application/json
 
 ```json
 {
-  "model": "provider_pubkey:model_name",
+  "model": "openai/gpt-4o",
   "messages": [
     {"role": "user", "content": "Hello, how are you?"}
   ],
@@ -33,10 +33,27 @@ Content-Type: application/json
 
 **Key Fields:**
 
-- `model`: Format is `provider_pubkey:model_name` where `provider_pubkey` is the Solana public key of the model provider
+- `model`: You can specify models in two ways:
+  - **Simple format**: `openai/gpt-4o` - Uses intelligent routing to find the best provider
+  - **Direct format**: `provider_pubkey:model_name` - Route to a specific provider
 - `messages`: Standard OpenAI message format
 - `stream`: Set to `true` for streaming responses, `false` for complete responses
 - Other standard OpenAI parameters are supported
+
+### Listing Available Models
+
+To see all available models, use the models endpoint:
+
+**Endpoint:** `GET /v1/models`
+
+**Example:**
+
+```bash
+curl "https://devnet.aimo.network/api/v1/models" \
+  -H "Authorization: Bearer aimo-sk-v2-[your-api-key]"
+```
+
+This returns a list of all available models with their capabilities and pricing.
 
 ### Example Usage
 
@@ -44,10 +61,10 @@ Content-Type: application/json
 
 ```bash
 curl -X POST "https://devnet.aimo.network/api/v1/chat/completions" \
-  -H "Authorization: Bearer aimo-sk-dev-[your-api-key]" \
+  -H "Authorization: Bearer aimo-sk-v2-[your-api-key]" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "8W7X1tGnWh9CXwnPD7wgke31Gdcqmex4LapJvQ2afBUq:deepseek-chat-v3",
+    "model": "openai/gpt-4o",
     "messages": [
       {"role": "user", "content": "Explain quantum computing"}
     ],
@@ -64,12 +81,12 @@ import json
 
 url = "https://devnet.aimo.network/api/v1/chat/completions"
 headers = {
-    "Authorization": "Bearer aimo-sk-dev-[your-api-key]",
+    "Authorization": "Bearer aimo-sk-v2-[your-api-key]",
     "Content-Type": "application/json"
 }
 
 data = {
-    "model": "8W7X1tGnWh9CXwnPD7wgke31Gdcqmex4LapJvQ2afBUq:deepseek-chat-v3",
+    "model": "anthropic/claude-3-5-sonnet",
     "messages": [
         {"role": "user", "content": "What is machine learning?"}
     ],
@@ -87,11 +104,11 @@ print(response.json())
 const response = await fetch('https://devnet.aimo.network/api/v1/chat/completions', {
   method: 'POST',
   headers: {
-    'Authorization': 'Bearer aimo-sk-dev-[your-api-key]',
+    'Authorization': 'Bearer aimo-sk-v2-[your-api-key]',
     'Content-Type': 'application/json'
   },
   body: JSON.stringify({
-    model: '8W7X1tGnWh9CXwnPD7wgke31Gdcqmex4LapJvQ2afBUq:deepseek-chat-v3',
+    model: 'deepseek/deepseek-chat',
     messages: [
       { role: 'user', content: 'Tell me about blockchain technology' }
     ],
@@ -109,12 +126,39 @@ while (true) {
 }
 ```
 
-## Finding Model Providers
+## Finding Available Models
 
-To use AiMo Network, you need to find available models and their provider addresses:
+There are two ways to discover and use models:
 
-1. **Visit the discover page**: Go to [https://aimo.network/marketplace](https://aimo.network/marketplace) to browse available models
-2. **Copy the model slug**: Find the model you want to use and copy its complete slug in the format `address:model_name`
-3. **Use in your requests**: Paste the copied slug directly into your API requests
+### 1. List Models via API
 
-The model format is always `provider_pubkey:model_name` where `provider_pubkey` is the Solana public key of the model provider.
+Query the models endpoint to see all available models programmatically:
+
+```bash
+curl "https://devnet.aimo.network/api/v1/models" \
+  -H "Authorization: Bearer aimo-sk-v2-[your-api-key]"
+```
+
+### 2. Browse the Marketplace
+
+Visit [https://aimo.network/marketplace](https://aimo.network/marketplace) to browse available models with their capabilities and pricing.
+
+### Model Specification Formats
+
+You can specify models in two ways:
+
+**Intelligent Routing (Recommended):**
+```json
+{
+  "model": "openai/gpt-4o"
+}
+```
+The system automatically routes to the best available provider for this model.
+
+**Direct Provider:**
+```json
+{
+  "model": "8W7X1tGnWh9CXwnPD7wgke31Gdcqmex4LapJvQ2afBUq:deepseek-chat-v3"
+}
+```
+Routes directly to a specific provider using `provider_pubkey:model_name` format.

@@ -34,21 +34,33 @@ Before connecting to AiMo Network, ensure you have:
 
 ## Step 1: Set Up API Key
 
-### Generate API Key via Web Console
+You have two options to generate your provider API key:
+
+### Option A: Using the Web Console
 
 Generate your provider API key through the AiMo Network web dashboard:
 
 1. Navigate to the [AiMo Network Dashboard](https://aimo.network/account/keys)
 2. Connect your Solana wallet
 3. Go to the API Keys section
-4. Click "Generate Provider API Key"
+4. Click "Generate Provider Key"
 5. Copy and securely store your API key
 
-Your API key will look like: `aimo-sk-dev-[base58-encoded-key]`
+Your API key will look like: `aimo-sk-v2-[base58-encoded-key]`
 
-:::info
-  Only `dev` tag is supported now.
-:::
+### Option B: Using AiMo CLI
+
+Generate a provider API key using the command line:
+
+```bash
+# Install the CLI if you haven't already
+cargo install aimo-cli
+
+# Generate a provider API key (requires Solana wallet signature)
+aimo keygen --tag dev --valid-for 90 --scopes completion_model
+```
+
+**Note:** Provider keys require Solana wallet signature for generation via CLI, unlike user API keys.
 
 :::warning
   Store your API key securely. It cannot be retrieved again after generation.
@@ -127,7 +139,7 @@ The AiMo proxy uses a configuration file to manage your service settings. Create
 [router]
 url = "https://devnet.aimo.network"
 # prefix with `std::env::` to read from env vars
-api_key = "std::env::AIMO_API_KEY"
+api_key = "std::env::AIMO_PROVIDER_KEY"
 
 # Model metadata
 [[models]]
@@ -193,7 +205,7 @@ api_key = "std::env::GOOGLE_API_KEY"
 Set your API keys as environment variables for security:
 
 ```bash
-export AIMO_API_KEY="aimo-sk-dev-your-key-here"
+export AIMO_PROVIDER_KEY="aimo-sk-v2-your-provider-key-here"
 export OPENAI_API_KEY="sk-your-openai-key"
 export DEEPSEEK_API_KEY="sk-your-deepseek-key"
 export GOOGLE_API_KEY="your-google-api-key"
